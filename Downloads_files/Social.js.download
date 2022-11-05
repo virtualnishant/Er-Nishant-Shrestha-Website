@@ -1,0 +1,62 @@
+﻿(function ($) {
+    var itemsPerPage = 5;
+    var pagePerDisplay = 1;
+    var pageNo = 1;
+
+    var Social = {
+        init: function () {
+
+            Social.getSocial(pageNo);
+        },
+
+        config: {
+            baseUrl: '/Client/'
+            , dataType: 'json'
+            , contentType: 'application/json; charset=utf-8'
+        },
+
+        ajaxCall: function (method, data, type, successCallback, failureCallback) {
+            $.ajax({
+                url: Social.config.baseUrl + method
+                , type: Social.config.type
+                , contentType: Social.config.contentType
+                , data: data
+                , dataType: Social.config.dataType
+                , success: function (result) {
+                    successCallback(result);
+                }
+                , error: function (xhr, s, e) {
+                    Social.failureCallback(xhr, s, e);
+                }
+            });
+        },
+
+
+
+        failureCallback: function (xhr, s, e) {
+            showMessage(e, 'error');
+        },
+
+        getSocial: function (page) {
+            Social.ajaxCall('GetSocials', { pageNo: page, itemsPerPage: itemsPerPage, pagePerDisplay: pagePerDisplay }, 'GET', Social.getSocialSuccessCallback, Social.failureCallback);
+        },
+
+        getSocialSuccessCallback: function (results) {
+            var cookie = getCookie('_culture');
+            if (results != null) {
+                var footerHtml = '';
+                $.each(results.data, function (index, item) {
+                    footerHtml += '<li>';
+                    footerHtml += '<a href="' + item.link + '" target="_blank"><img src="/Areas/Social/Uploads/ThumbNail/Small/' + item.imageName + '" height="100%" width="100%" style = "border-radius: 50%!important;"/></a>'
+                    footerHtml += '</li>';
+                })
+                $('#_socialLinks').append(footerHtml);
+            }
+
+        },
+
+
+    }
+
+    Social.init();
+})(jQuery);

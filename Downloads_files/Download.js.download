@@ -1,0 +1,170 @@
+﻿(function ($) {
+    var itemsPerPage = 20;
+    var pagePerDisplay = 5;
+    var pageNo = 1;
+    var cookie = '';
+    var _active = "";
+
+    var Download = {
+        init: function () {
+            cookie = getCookie('_culture');
+
+            Download.getDownloadCategoryList();
+        },
+
+        config: {
+            baseUrl: '/Client/'
+            , dataType: 'json'
+            , contentType: 'application/json; charset=utf-8'
+        },
+
+        ajaxCall: function (method, data, type, successCallback, failureCallback) {
+            $.ajax({
+                url: Download.config.baseUrl + method
+                , type: Download.config.type
+                , contentType: Download.config.contentType
+                , data: data
+                , dataType: Download.config.dataType
+                , success: function (result) {
+                    successCallback(result);
+                }
+                , error: function (xhr, s, e) {
+                    Download.failureCallback(xhr, s, e);
+                }
+            });
+        },
+
+        failureCallback: function (xhr, s, e) {
+            showMessage(e, 'error');
+        },
+        getDownloadCategoryList: function () {
+            Download.ajaxCall('GetDownloadCategory', { name: "", pageNo: 1, isActive: 1, itemsPerPage: 999999, pagePerDisplay: 1 }, 'GET', Download.getDownloadCategoryListSuccessCallback, Download.failureCallback);
+        },
+
+        getDownloadCategoryListSuccessCallback: function (results) {
+            var html = '';
+            var downloadsHtml;
+            var _id;
+            var categoryName;
+            var _categoryName;
+            if (results.data.length > 0) {
+                html += '<div class="col-md-3">';
+                html += '<div class="nav flex-column nav-pills nav-pills-custom" id="v-pills-tab" role="tablist" aria-orientation="vertical">';
+                $.each(results.data, function (index, item) {
+
+                    if (index == 0) {
+                        _active = "active";
+                        _id = item.id
+                    }
+                    else {
+                        _active = "";
+                    }
+
+                    if (cookie == 'en') {
+                        categoryName = item.name;
+                    }
+                    else {
+                        categoryName = (item.nameNP != '') ? item.nameNP : item.name;
+                    }
+                    html += '<a class="nav-link mb-3 p-3 shadow ' + _active + '" id="v-pills-home-tab" data-toggle="pill" href="#' + item.id + '" role="tab" aria-controls="v-pills-home" aria-selected="true">';
+                    html += '<i class="fas fa-star mr-2"></i>';
+                    html += '<span class="font-weight-bold small text-uppercase">' + categoryName + '</span>';
+                    html += '</a>';
+                });
+                html += '</div>';
+                html += '</div>';
+                html += '<div class="col-md-9">';
+                html += '<div class="tab-content" id="v-pills-tabContent">';
+                $.each(results.data, function (inx, val) {
+                    downloadsHtml = Download.GetDownload(val.id);
+                    if (inx == 0) {
+                        _active = "active";
+                        _id = val.id
+                    }
+                    else {
+                        _active = "";
+                    }
+                    if (cookie == 'en') {
+                        _categoryName = val.name;
+                    }
+                    else {
+                        _categoryName = (val.nameNP != '') ? val.nameNP : val.name;
+                    }
+                    html += '<div class="tab-pane fade shadow rounded bg-white p-4 ' + _active + (_active == "" ? "" : " show") + '" id="' + val.id + '" role="tabpanel" aria-labelledby="v-pills-home-tab">';
+                    html += '<h4 class="mb-2">' + _categoryName + '</h4>';
+                    html += '<table class="table">';
+                    html += '<tbody>';
+                    html += '<tr>';
+                    html += '<th scope="col">S.N</th>';
+                    html += '<th scope="col">Download Documents</th>';
+                    html += '<th scope="col">Files</th>';
+                    html += '</tr>';
+                    html += downloadsHtml;
+                    html += '</tbody>';
+                    html += '</table>';
+                    html += '</div>';
+                });
+                html += '</div>';
+                html += '</div>';
+
+            }
+            $('#divDownload').html(html);
+        },
+
+
+        GetDownload: function (id) {
+            var downloadHtml = '';
+            var data = { title: "", downloadCategoryId: id, pageNo: pageNo, isActive: 1, itemsPerPage: itemsPerPage, pagePerDisplay: pagePerDisplay };
+            var ajaxRequest = $.ajax({
+                type: "GET",
+                contentType: Download.config.contentType,
+                url: Download.config.baseUrl + "GetDownload",
+                data: data,
+                async: false,
+                dataType: Download.config.dataType,
+                success: function (results) {
+                    if (results.data.length > 0) {
+                        $.each(results.data, function (inx, value) {
+                            var title, fileUrl;
+                            if (cookie == 'en') {
+                                title = value.title;
+                            }
+                            else {
+                                title = (value.titleNP != '') ? value.titleNP : value.title;
+                            }
+                            inx = inx + 1;
+                            fileUrl = '/Areas/Download/Uploads/Files/' + value.fileName;
+                            downloadHtml += '<tr>';
+                            downloadHtml += ' <td>' + inx + '</td>';
+                            downloadHtml += '  <td>' + title + '</td>';
+                            downloadHtml += ' <td><a href="' + fileUrl + '" target="_blank"><i class="far fa-file-pdf"></i> ' + downloadsLabel + '</a></td>';
+                            downloadHtml += '</tr>';
+                        });
+                    }
+
+                },
+                error: function (xhr, s, e) {
+                    console.log(xhr);
+                }
+            });
+            return downloadHtml;
+        },
+
+
+        bindPager: function (pager) {
+            pageNo = pager.pageNo;
+            $('#divPager').pagination({
+                pageNo: pager.pageNo
+                , itemsPerPage: pager.itemsPerPage
+                , pagePerDisplay: pager.pagePerDisplay
+                , totalNextPages: pager.totalNextPages
+                , callback: Download.getDownload
+            });
+            $('#divPager').show();
+
+        }
+
+    }
+
+    Download.init();
+})(jQuery);

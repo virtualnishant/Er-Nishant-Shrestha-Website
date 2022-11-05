@@ -1,0 +1,85 @@
+﻿(function ($) {
+
+    var ContactFooter = {
+        init: function () {
+
+            ContactFooter.getContactList(1);
+        },
+
+        config: {
+            baseUrl: '/Client/'
+            , dataType: 'json'
+            , contentType: 'application/json; charset=utf-8'
+        },
+
+        ajaxCall: function (method, data, type, successCallback, failureCallback) {
+            $.ajax({
+                url: ContactFooter.config.baseUrl + method
+                , type: ContactFooter.config.type
+                , contentType: ContactFooter.config.contentType
+                , data: data
+                , dataType: ContactFooter.config.dataType
+                , success: function (result) {
+                    successCallback(result);
+                }
+                , error: function (xhr, s, e) {
+                    ContactFooter.failureCallback(xhr, s, e);
+                }
+            });
+        },
+
+
+
+        failureCallback: function (xhr, s, e) {
+            showMessage(e, 'error');
+        },
+
+        getContactList: function (page) {
+            ContactFooter.ajaxCall('GetContact', {}, 'GET', ContactFooter.getContactListSuccessCallback, ContactFooter.failureCallback);
+        },
+
+        getContactListSuccessCallback: function (results) {
+            var html = '';
+            var cookie = getCookie('_culture');
+            var item = results;
+            var name, address, phoneNo1, phoneNo2, phoneNo3, fax, email;
+
+            if (cookie == 'en') {
+                name = item.name;
+                address = item.address;
+                phoneNo1 = item.phoneNo1;
+                phoneNo2 = item.phoneNo2;
+                phoneNo3 = item.phoneNo3;
+                tollFreeNo = item.tollFreeNo;
+                officeHours = item.officeHours;
+                fax = item.fax;
+            }
+            else {
+                name = (item.nameNP != '') ? item.nameNP : item.name;
+                address = (item.addressNP != '') ? item.addressNP : item.address;
+                phoneNo1 = (item.phoneNoNP1 != '') ? item.phoneNoNP1 : item.phoneNo1;
+                phoneNo2 = (item.phoneNoNP2 != '') ? item.phoneNoNP2 : item.phoneNo2;
+                phoneNo3 = (item.phoneNoNP2 != '') ? item.phoneNoNP2 : item.phoneNo3;
+                tollFreeNo = (item.tollFreeNoNP != '') ? item.tollFreeNoNP : item.tollFreeNo;
+                officeHours = (item.officeHoursNP != '') ? item.officeHoursNP : item.officeHours;
+                fax = (item.faxNP != '') ? item.faxNP : item.fax;
+            }
+            email = item.email;
+
+            var phoneNo = phoneNo1 + ((phoneNo2 != '') ? ', ' + phoneNo2 : '') + ((phoneNo3 != '') ? ', ' + phoneNo3 : '');
+
+            html += '<li><i class="fas fa-map-marker-alt"></i><b>' + name + '</b><br><p>' + address + '</p></li>';
+            html += '<li><i class="fas fa-phone"></i>' + phoneNo + '</li>';
+            if (fax != "") {
+                html += '<li><i class="fas fa-fax"></i>' + fax + '</li>';
+            }
+            html += '<li><i class="fas fa-envelope"></i>' + email + '</li>';
+
+            $("#ulContact").html(html);
+        },
+
+
+    }
+
+    ContactFooter.init();
+})(jQuery);

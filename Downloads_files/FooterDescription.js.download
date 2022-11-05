@@ -1,0 +1,48 @@
+﻿(function ($) {
+    var cookie = '';
+    var FooterDescription = {
+        init: function () {
+            cookie = getCookie('_culture');
+            FooterDescription.getFooterDescription();
+        },
+
+        config: {
+            baseUrl: '/Client/'
+            , dataType: 'json'
+            , jsonContentType: 'application/json; charset=utf-8'
+            , formContentType: 'application/x-www-form-urlencoded'
+        },
+
+        ajaxCall: function (method, data, type, contentType, successCallback, failureCallback) {
+            $.ajax({
+                url: FooterDescription.config.baseUrl + method
+                , type: type
+                , contentType: contentType
+                , data: data
+                , dataType: FooterDescription.config.dataType
+                , success: function (result) {
+                    successCallback(result);
+                }
+                , error: function (xhr, s, e) {
+                    FooterDescription.failureCallback(xhr, s, e);
+                }
+            });
+        },
+
+        failureCallback: function (xhr, s, e) {
+            showMessage(e, 'error');
+        },
+
+        getFooterDescription: function () {
+            FooterDescription.ajaxCall('GetCompanyDescription', {}, 'GET', FooterDescription.config.jsonContentType, FooterDescription.getFooterDescriptionSuccessCallback, FooterDescription.failureCallback);
+        },
+
+        getFooterDescriptionSuccessCallback: function (results) {
+            var html = '';
+            html += '<div>' + (cookie == 'en' ? results.description : (results.description != "" ? results.descriptionNP : results.description)) + '</div>'
+            $('#companyDescriptionFooter').append(html);
+            $('.careerCount').html(results.careerCount);
+        },
+    }
+    FooterDescription.init();
+})(jQuery);

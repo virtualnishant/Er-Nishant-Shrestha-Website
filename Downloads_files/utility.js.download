@@ -1,0 +1,13 @@
+﻿(function ($) {
+   showMessage = function (msg, type) {
+        $.iGrowl({
+            message: msg,
+            type: type,
+            icon: type == 'success' ? 'feather-check' : 'feather-delete',
+            placement: {
+                x: 'left',
+                y: 'bottom'
+            }
+        })
+    };
+})(jQuery);
